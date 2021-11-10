@@ -1,17 +1,19 @@
 package astudy.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@Data
 public class UserProfileDto {
 
-    @JsonProperty("firstname")
+    @JsonProperty("firstName")
     private String firstName;
 
-    @JsonProperty("lastname")
+    @JsonProperty("lastName")
     private String lastName;
 
     @JsonProperty("phone")
@@ -25,4 +27,23 @@ public class UserProfileDto {
 
     @JsonProperty("username")
     private String username;
+
+    @JsonProperty("email")
+    private String email;
+
+    @JsonProperty("permission")
+    private String permission;
+
+    @Override
+    public String toString() {
+        return "UserProfileDto{" +
+                "firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", phone='" + phone + '\'' +
+                ", address='" + address + '\'' +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", permission='" + permission + '\'' +
+                '}';
+    }
 }

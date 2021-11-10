@@ -24,11 +24,6 @@ public class UserServiceImpl implements UserService{
     private final UserProfileRepository userProfileRepository;
 
     @Override
-    public UserDto saveUser(UserDto user) {
-        return null;
-    }
-
-    @Override
     public List<CourseDto> findListUserCourse(Long userId) {
         return null;
     }
@@ -88,7 +83,28 @@ public class UserServiceImpl implements UserService{
         userDb.setUserProfile(userProfileRepository.save(userProfile));
         userRepository.save(userDb);
 
-        return updateData;
+        return getProfile(userDb.getUsername());
+    }
+
+    @Override
+    public UserProfileDto getProfile(String username) {
+        User userDb = userRepository.findUserByUsername(username);
+        UserProfile profileDb = userDb.getUserProfile();
+        UserProfileDto response = new UserProfileDto();
+
+        response.setEmail(userDb.getEmail());
+        response.setUsername(username);
+        response.setPermission(userDb.getRole().getName().toString());
+
+        if(profileDb != null) {
+            response.setFirstName(profileDb.getFirstName());
+            response.setLastName(profileDb.getLastName());
+            response.setPhone(profileDb.getPhone());
+            response.setAddress(profileDb.getAddress());
+        }
+
+        return response;
+
     }
 
 
