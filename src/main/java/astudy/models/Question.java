@@ -1,10 +1,13 @@
 package astudy.models;
 
+import lombok.Data;
+
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
 @Table(name = "question")
+@Data
 public class Question {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     @Id
@@ -16,8 +19,9 @@ public class Question {
     @Column(nullable = false)
     private int score;
 
-    @OneToMany(mappedBy = "question")
-    List<QuizQuestion> quizs;
+    @ManyToOne
+    @JoinColumn(name = "quiz_id", nullable = false)
+    Quiz quiz;
 
     @OneToMany(mappedBy = "question")
     List<QuestionOption> options;

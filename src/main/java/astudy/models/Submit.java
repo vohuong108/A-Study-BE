@@ -18,10 +18,10 @@ public class Submit {
     @Enumerated(EnumType.STRING)
     private SubmitState state;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "start_time")
     private Date startTime;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "finish_time")
     private Date finishTime;
 
     @Column(nullable = false)

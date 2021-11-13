@@ -10,4 +10,10 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             value = "SELECT * FROM category WHERE category.name = :name",
             nativeQuery = true)
     Category findByName(@Param("name") String name);
+
+    @Override
+    @Query(
+            value = "SELECT * FROM category WHERE category.ID = :categoryId",
+            nativeQuery = true)
+    Category getById(@Param("categoryId") Long categoryId);
 }

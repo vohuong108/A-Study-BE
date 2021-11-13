@@ -1,11 +1,9 @@
 package astudy.services;
 
 import astudy.dtos.CourseDto;
-import astudy.dtos.LectureDto;
 import astudy.dtos.WeekDto;
 import astudy.response.EditCourseResponse;
 import org.springframework.stereotype.Service;
-import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -20,7 +18,5 @@ public interface CourseService {
 
     WeekDto createWeek(WeekDto newWeek);
 
-    LectureDto createLecture(LectureDto newLecture) throws IOException;
 
-    LectureDto findLectureById(Long lectureId);
 }

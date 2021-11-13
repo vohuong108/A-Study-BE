@@ -9,5 +9,5 @@ public interface LectureRepository extends JpaRepository<Lecture, Long> {
     @Query(
             value = "SELECT * FROM lecture l WHERE l.ID = :lecId",
             nativeQuery = true)
-    Lecture findByWeekIdAndLectureId(@Param("lecId") Long lecId);
+    Lecture findByLectureId(@Param("lecId") Long lecId);
 }

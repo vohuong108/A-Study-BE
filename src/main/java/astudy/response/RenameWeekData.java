@@ -14,4 +14,7 @@ public class RenameWeekData {
     @JsonProperty("newName")
     private String newName;
 
+    @JsonProperty("weekId")
+    private Long weekId;
+
 }

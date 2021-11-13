@@ -2,17 +2,14 @@ package astudy.models;
 
 import astudy.enums.LectureStatus;
 import astudy.enums.LectureType;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
 @Table(name = "lecture")
-@Getter
-@Setter
+@Data
 public class Lecture {
 
     @Id
@@ -33,12 +30,12 @@ public class Lecture {
     @Enumerated(EnumType.STRING)
     private LectureStatus lectureStatus;
 
-    @Lob
-    @Column(length = Integer.MAX_VALUE)
-    private byte[] content;
-
     @Column(name = "release_date")
     private Date releaseDate;
+
+    @OneToOne
+    @JoinColumn(name = "content_id")
+    private LectureContent lectureContent;
 
     @ManyToOne
     @JoinColumn(name = "week_id", nullable = false)

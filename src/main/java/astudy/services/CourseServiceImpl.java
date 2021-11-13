@@ -3,17 +3,13 @@ package astudy.services;
 import astudy.dtos.CourseDto;
 import astudy.dtos.LectureDto;
 import astudy.dtos.WeekDto;
-import astudy.enums.LectureStatus;
-import astudy.enums.LectureType;
 import astudy.models.*;
 import astudy.repositories.*;
 import astudy.response.EditCourseResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,7 +21,6 @@ public class CourseServiceImpl implements CourseService{
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final WeekRepository weekRepository;
-    private final LectureRepository lectureRepository;
 
     @Override
     public CourseDto createCourse(CourseDto courseDto, String username) {
@@ -87,23 +82,40 @@ public class CourseServiceImpl implements CourseService{
 
     @Override
     public EditCourseResponse findEditCourseById(Long courseId) {
-        Course courseDb = courseRepository.getById(courseId);
-        EditCourseResponse response = new EditCourseResponse();
+        Course courseDb = courseRepository.findCourseById(courseId);
+        log.info("end get edit: {}", courseDb.toString());
 
+        List<WeekDto> weeks = courseDb.getWeeks().stream().map(week -> {
+            WeekDto weekDto = new WeekDto();
+            weekDto.setWeekId(week.getID());
+            weekDto.setName(week.getName());
+            weekDto.setSerialWeek(week.getSerialWeek());
+
+            //TODO lecture dto
+            List<LectureDto> lectures = week.getLectures().stream().map(lecture -> {
+                LectureDto lectureDto = new LectureDto();
+                lectureDto.setLectureId(lecture.getID());
+                lectureDto.setTitle(lecture.getTitle());
+                lectureDto.setLectureType(lecture.getLectureType().toString());
+                lectureDto.setLectureStatus(lecture.getLectureStatus().toString());
+                lectureDto.setIndexLecture(lecture.getIndexLecture());
+                lectureDto.setUrl("/week/lecture/"
+                        + lecture.getLectureType().toString().toLowerCase()
+                        + "/" + lecture.getID());
+
+                return lectureDto;
+            }).collect(Collectors.toList());
+
+            weekDto.setLectures(lectures);
+            return weekDto;
+        }).collect(Collectors.toList());
+
+        EditCourseResponse response = new EditCourseResponse();
         response.setID(courseDb.getID());
         response.setName(courseDb.getName());
         response.setDescription(courseDb.getDescription());
         response.setCategory(courseDb.getCategory().getName());
-        List<WeekDto> weeks = courseDb.getWeeks().stream().map(week -> {
-            WeekDto weekDto = new WeekDto();
-            weekDto.setName(week.getName());
-            weekDto.setSerialWeek(week.getSerialWeek());
-            //TODO lecture dto
-            return weekDto;
-        }).collect(Collectors.toList());
-
         response.setWeeks(weeks);
-
         return response;
     }
 
@@ -122,71 +134,6 @@ public class CourseServiceImpl implements CourseService{
         createWeek.setCourse(courseDb);
 
         Week result = weekRepository.save(createWeek);
-
         return newWeek;
-    }
-
-    @Override
-    public LectureDto createLecture(LectureDto newLecture) throws IOException {
-        Week weekDb = weekRepository.getById(newLecture.getWeekId());
-
-        log.info("getLectureStatus: {}", newLecture.getLectureStatus());
-        log.info("getIndexLecture: {}", newLecture.getIndexLecture());
-        log.info("getLectureType: {}", newLecture.getLectureType());
-        log.info("getWeekId: {}", newLecture.getWeekId());
-        log.info("getTitle: {}", newLecture.getTitle());
-        log.info("getOriginalFilename: {}", newLecture.getFile().getOriginalFilename());
-
-        Lecture createLec = new Lecture();
-        createLec.setIndexLecture(newLecture.getIndexLecture());
-        createLec.setTitle(newLecture.getTitle());
-        createLec.setWeek(weekDb);
-        createLec.setReleaseDate(new Date());
-        createLec.setContent(newLecture.getFile().getBytes());
-
-        String statusNewLec = newLecture.getLectureStatus().toUpperCase();
-
-        if(LectureStatus.PRIVATE.toString().equals(statusNewLec)) {
-            createLec.setLectureStatus(LectureStatus.PRIVATE);
-        } else {
-            createLec.setLectureStatus(LectureStatus.PUBLIC);
-        }
-
-        String NewLecType = newLecture.getLectureType().toUpperCase();
-
-        if(LectureType.TEXT.toString().equals(NewLecType)) {
-            createLec.setLectureType(LectureType.TEXT);
-        } else {
-            createLec.setLectureType(LectureType.VIDEO);
-        }
-
-        lectureRepository.save(createLec);
-
-        return newLecture;
-
-    }
-
-    @Override
-    public LectureDto findLectureById(Long lectureId) {
-        Lecture lecDb = lectureRepository.findByWeekIdAndLectureId(lectureId);
-
-        if (lecDb != null) {
-            LectureDto result = new LectureDto();
-
-            result.setLectureId(lecDb.getID());
-            result.setIndexLecture(lecDb.getIndexLecture());
-            result.setLectureStatus(lecDb.getLectureStatus().toString());
-            result.setLectureType(lecDb.getLectureType().toString());
-            result.setTitle(lecDb.getTitle());
-            result.setWeekId(lecDb.getWeek().getID());
-            result.setUrl(
-                    ServletUriComponentsBuilder
-                    .fromCurrentContextPath()
-                    .path("/api/course/lecture/")
-                    .path(lecDb.getID().toString()).toUriString());
-            result.setContent(lecDb.getContent());
-            return result;
-        } else return null;
-
     }
 }
