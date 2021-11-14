@@ -23,6 +23,6 @@ public class QuestionOption {
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
-    @OneToMany(mappedBy = "questionOption")
-    private List<Choosed> choosedList;
+//    @OneToMany(mappedBy = "questionOption")
+//    private List<Choosed> choosedList;
 }

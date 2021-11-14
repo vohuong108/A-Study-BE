@@ -7,6 +7,9 @@ import java.util.List;
 
 @Data
 public class QuizQuestionResponse {
+    @JsonProperty("questionId")
+    private Long questionId;
+
     @JsonProperty("question")
     private String question;
 

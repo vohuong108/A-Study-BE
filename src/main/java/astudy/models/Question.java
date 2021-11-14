@@ -26,6 +26,6 @@ public class Question {
     @OneToMany(mappedBy = "question")
     List<QuestionOption> options;
 
-    @OneToMany(mappedBy = "question")
-    List<Choosed> choosedList;
+//    @OneToMany(mappedBy = "question")
+//    List<Choosed> choosedList;
 }

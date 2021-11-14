@@ -21,6 +21,7 @@ public class CourseServiceImpl implements CourseService{
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final WeekRepository weekRepository;
+    private final WeekService weekService;
 
     @Override
     public CourseDto createCourse(CourseDto courseDto, String username) {
@@ -91,7 +92,7 @@ public class CourseServiceImpl implements CourseService{
             weekDto.setName(week.getName());
             weekDto.setSerialWeek(week.getSerialWeek());
 
-            //TODO lecture dto
+            //TODO text and video
             List<LectureDto> lectures = week.getLectures().stream().map(lecture -> {
                 LectureDto lectureDto = new LectureDto();
                 lectureDto.setLectureId(lecture.getID());
@@ -105,6 +106,23 @@ public class CourseServiceImpl implements CourseService{
 
                 return lectureDto;
             }).collect(Collectors.toList());
+
+            //TODO quiz
+            List<LectureDto> quizs = week.getQuizs().stream().map(quiz -> {
+                LectureDto quizDto = new LectureDto();
+
+                quizDto.setLectureId(quiz.getID());
+                quizDto.setTitle(quiz.getTitle());
+                quizDto.setLectureType("QUIZ");
+                quizDto.setLectureStatus(quiz.getQuizStatus().toString());
+                quizDto.setIndexLecture(quiz.getIndexLecture());
+                quizDto.setUrl("/week/lecture/quiz/" + quiz.getID());
+
+                return quizDto;
+
+            }).collect(Collectors.toList());
+
+            lectures.addAll(quizs);
 
             weekDto.setLectures(lectures);
             return weekDto;
@@ -120,11 +138,6 @@ public class CourseServiceImpl implements CourseService{
     }
 
     @Override
-    public void deleteCourseById(Long courseId) {
-        courseRepository.deleteById(courseId);
-    }
-
-    @Override
     public WeekDto createWeek(WeekDto newWeek) {
         Course courseDb = courseRepository.findCourseById(newWeek.getCourseId());
 
@@ -135,5 +148,16 @@ public class CourseServiceImpl implements CourseService{
 
         Week result = weekRepository.save(createWeek);
         return newWeek;
+    }
+
+    @Override
+    public void deleteCourseById(Long courseId) {
+        List<Long> listWeekId = weekRepository.getListIdByCourseId(courseId);
+
+        for (Long weekId : listWeekId) {
+            weekService.deleteWeekById(weekId);
+        }
+
+        courseRepository.deleteById(courseId);
     }
 }

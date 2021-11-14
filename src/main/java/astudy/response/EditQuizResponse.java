@@ -3,12 +3,13 @@ package astudy.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import javax.persistence.Column;
-import java.util.Date;
 import java.util.List;
 
 @Data
 public class EditQuizResponse {
+    @JsonProperty("quizId")
+    private Long quizId;
+
     @JsonProperty("weekId")
     private Long weekId;
 

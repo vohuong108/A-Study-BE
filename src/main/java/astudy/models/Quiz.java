@@ -30,9 +30,11 @@ public class Quiz {
     private int time;
 
     @Column(nullable = false, name = "release_date")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date releaseDate;
 
     @Column(nullable = false, name="close_date")
+    @Temporal(TemporalType.TIMESTAMP)
     private Date closeDate;
 
     @Column(name = "status")
@@ -49,8 +51,8 @@ public class Quiz {
     @JoinColumn(name = "week_id", nullable = false)
     private Week week;
 
-    @OneToMany(mappedBy = "quiz")
-    List<Submit> submits;
+//    @OneToMany(mappedBy = "quiz")
+//    List<Submit> submits;
 
     @OneToMany(mappedBy = "quiz")
     List<Question> questions;

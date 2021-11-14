@@ -45,6 +45,6 @@ public class User {
     @OneToMany(mappedBy = "student")
     Set<courseStudent> courseStudents;
 
-    @OneToMany(mappedBy = "student")
-    List<Submit> submits;
+//    @OneToMany(mappedBy = "student")
+//    List<Submit> submits;
 }

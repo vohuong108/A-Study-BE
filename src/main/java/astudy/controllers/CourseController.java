@@ -2,6 +2,8 @@ package astudy.controllers;
 
 import astudy.dtos.CourseDto;
 import astudy.dtos.WeekDto;
+import astudy.repositories.WeekRepository;
+import astudy.response.DeleteCourseResponse;
 import astudy.services.CourseService;
 import astudy.utils.HandleToken;
 import lombok.AllArgsConstructor;
@@ -50,5 +52,14 @@ public class CourseController {
         return ResponseEntity.ok().body(courseService.createWeek(body));
     }
 
+    private WeekRepository weekRepository;
+
+    @DeleteMapping("/course/delete/{id}")
+    public ResponseEntity<?> deleteCourseByID(@PathVariable("id") Long id) {
+        courseService.deleteCourseById(id);
+        return ResponseEntity.ok().body(
+                new DeleteCourseResponse(id, "delete course successfully")
+        );
+    }
 
 }

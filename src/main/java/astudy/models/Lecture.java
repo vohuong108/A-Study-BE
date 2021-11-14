@@ -31,9 +31,10 @@ public class Lecture {
     private LectureStatus lectureStatus;
 
     @Column(name = "release_date")
+    @Temporal(value = TemporalType.TIMESTAMP)
     private Date releaseDate;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "content_id")
     private LectureContent lectureContent;
 

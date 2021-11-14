@@ -2,7 +2,7 @@ package astudy.controllers;
 
 import astudy.dtos.LectureDto;
 import astudy.dtos.MessageResponse;
-import astudy.dtos.WeekDto;
+import astudy.response.DeleteLectureQuizResponse;
 import astudy.response.EditQuizResponse;
 import astudy.response.RenameWeekData;
 import astudy.services.WeekService;
@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -26,35 +25,10 @@ import java.io.IOException;
 @RequestMapping("/api")
 public class WeekController {
     private final WeekService weekService;
-
-    @PutMapping("/week/rename")
-    public ResponseEntity<?> renameWeek(@RequestBody RenameWeekData renameWeekData)  {
-        return ResponseEntity.ok().body( weekService.renameWeek(renameWeekData));
-    }
-
-    @PostMapping(value = "/week/createlecture", consumes = {
-            MediaType.APPLICATION_JSON_VALUE,
-            MediaType.MULTIPART_FORM_DATA_VALUE
-    })
-    public ResponseEntity<?> createLecture(@ModelAttribute LectureDto data) {
-        try {
-            LectureDto response = weekService.createLecture(data);
-//            String message = "Uploaded the file successfully: " + data.getFile().getOriginalFilename();
-            return ResponseEntity.status(HttpStatus.OK).body(response);
-
-        } catch (IOException e) {
-            log.error("err mapper: {}", e.getMessage());
-            log.error("error file: {}", data.getFile().getOriginalFilename());
-            String message = "Could not upload the file: " + data.getFile().getOriginalFilename() + "!";
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new MessageResponse(message));
-        }
-    }
-
     @GetMapping("/week/lecture/{type}/{id}")
-    public ResponseEntity<ByteArrayResource> getLectureVideo(
+    public ResponseEntity<?> getLecture(
             @PathVariable("id") Long lecId,
-            @PathVariable("type") String type,
-            HttpServletResponse response) throws IOException {
+            @PathVariable("type") String type) throws IOException {
         if (type.equals("video")) {
             byte[] result = weekService.getLectureVideoOrText(lecId);
             ByteArrayResource resource = new ByteArrayResource(result);
@@ -75,8 +49,37 @@ public class WeekController {
                     .header("Content-Length", String.valueOf(result.length))
                     .header("Content-Range", "bytes" + " " + 0 + "-" + 2000 + "/" + result.length)
                     .body(resource);
-        } else return null;
+        } else {
+            return ResponseEntity.ok().body(weekService.getQuiz(lecId));
+        }
 
+    }
+
+    @PostMapping("/week/createweek")
+    public ResponseEntity<?> createweek(@RequestBody RenameWeekData newWeekData)  {
+        return ResponseEntity.ok().body( weekService.createWeek(newWeekData));
+    }
+
+    @PutMapping("/week/rename")
+    public ResponseEntity<?> renameWeek(@RequestBody RenameWeekData renameWeekData)  {
+        return ResponseEntity.ok().body( weekService.renameWeek(renameWeekData));
+    }
+
+    @PostMapping(value = "/week/createlecture", consumes = {
+            MediaType.APPLICATION_JSON_VALUE,
+            MediaType.MULTIPART_FORM_DATA_VALUE
+    })
+    public ResponseEntity<?> createLecture(@ModelAttribute LectureDto data) {
+        try {
+            LectureDto response = weekService.createLecture(data);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        } catch (IOException e) {
+            log.error("err mapper: {}", e.getMessage());
+            log.error("error file: {}", data.getFile().getOriginalFilename());
+            String message = "Could not upload the file: " + data.getFile().getOriginalFilename() + "!";
+            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new MessageResponse(message));
+        }
     }
 
     @PostMapping(value = "/week/createquiz")
@@ -86,4 +89,43 @@ public class WeekController {
 
     }
 
+    @PutMapping(value = "/week/updatelecture", consumes = {
+            MediaType.APPLICATION_JSON_VALUE,
+            MediaType.MULTIPART_FORM_DATA_VALUE
+    })
+    public ResponseEntity<?> updateLecture(@ModelAttribute LectureDto data) {
+        try {
+            LectureDto response = weekService.updateLecture(data);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+
+        } catch (IOException e) {
+            log.error("err mapper: {}", e.getMessage());
+            log.error("error file: {}", data.getFile().getOriginalFilename());
+            String message = "Could not upload the file: " + data.getFile().getOriginalFilename() + "!";
+            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(new MessageResponse(message));
+        }
+    }
+
+    @PutMapping(value = "/week/updatequiz")
+    public ResponseEntity<?> updateQuiz(@RequestBody EditQuizResponse data) {
+        LectureDto response = weekService.updateQuiz(data);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+    }
+
+    @DeleteMapping(value = "/week/{weekId}/lecture/{type}/{id}")
+    public ResponseEntity<?> deleteLecture(
+            @PathVariable("weekId") Long weekId,
+            @PathVariable("id") Long lecId,
+            @PathVariable("type") String type) {
+        if (type.equals("quiz")) {
+            weekService.deleteQuiz(lecId);
+        } else {
+            weekService.deleteLecture(lecId);
+        }
+
+        return ResponseEntity.ok().body(
+                new DeleteLectureQuizResponse(weekId, lecId, "delete successfully")
+        );
+    }
 }
