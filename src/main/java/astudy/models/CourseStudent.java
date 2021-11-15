@@ -1,21 +1,24 @@
 package astudy.models;
 
+import lombok.Data;
+
 import javax.persistence.*;
 import java.util.Date;
 
+
 @Entity
 @Table(name = "course_student")
-public class courseStudent {
-    @EmbeddedId
-    CourseStudentKey id;
+@Data
+public class CourseStudent {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long ID;
 
     @ManyToOne
-    @MapsId("studentId")
     @JoinColumn(name = "student_id")
     private User student;
 
     @ManyToOne
-    @MapsId("courseId")
     @JoinColumn(name = "course_id")
     private Course course;
 

@@ -1,17 +1,12 @@
-package astudy.dtos;
+package astudy.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.Data;
 
-import java.util.Date;
 import java.util.List;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
-public class CourseDto {
+public class OverviewCourse {
     @JsonProperty("courseId")
     private Long courseId;
 
@@ -27,19 +22,9 @@ public class CourseDto {
     @JsonProperty("skillInfo")
     private List<String> skillInfo;
 
-    @JsonProperty("category")
-    private String category;
-
-    @JsonProperty("username")
-    private String username;
-
     @JsonProperty("author")
     private String author;
 
-    @JsonProperty("permissionCourse")
-    private String permissionCourse;
-
-    @JsonProperty("releaseDate")
-    private Date releaseDate;
-
+    @JsonProperty("isEnroll")
+    private boolean isEnroll;
 }

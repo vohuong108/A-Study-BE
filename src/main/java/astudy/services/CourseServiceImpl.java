@@ -3,10 +3,13 @@ package astudy.services;
 import astudy.dtos.CourseDto;
 import astudy.dtos.LectureDto;
 import astudy.dtos.WeekDto;
+import astudy.enums.Permission;
 import astudy.models.*;
 import astudy.repositories.*;
 import astudy.response.EditCourseResponse;
-import lombok.RequiredArgsConstructor;
+import astudy.response.OverviewCourse;
+import astudy.response.SearchCourseResponse;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Slf4j
 public class CourseServiceImpl implements CourseService{
     private final CourseRepository courseRepository;
@@ -22,6 +25,7 @@ public class CourseServiceImpl implements CourseService{
     private final UserRepository userRepository;
     private final WeekRepository weekRepository;
     private final WeekService weekService;
+    private final CourseStudentRepository courseStudentRepository;
 
     @Override
     public CourseDto createCourse(CourseDto courseDto, String username) {
@@ -69,22 +73,42 @@ public class CourseServiceImpl implements CourseService{
     @Override
     public List<CourseDto> findAllCourse(String username) {
         User userDb = userRepository.findUserByUsername(username);
-        List<CourseDto> courses = userDb.getCourses().stream().map(course -> {
+        Permission role = userDb.getRole().getName();
+
+        List<CourseDto> courses = userDb.getCourseStudents().stream().map(sc -> {
+            Course course = sc.getCourse();
+
             CourseDto temp = new CourseDto();
             temp.setCourseId(course.getID());
             temp.setName(course.getName());
             temp.setAuthor(course.getAuthor().getUsername());
-
+            temp.setPermissionCourse("STUDENT");
             return temp;
+
         }).collect(Collectors.toList());
 
+        if (role != Permission.STUDENT) {
+            //TODO: current user is author
+            List<CourseDto> courses2 = userDb.getCourses().stream().map(c -> {
+                CourseDto temp2 = new CourseDto();
+                temp2.setCourseId(c.getID());
+                temp2.setName(c.getName());
+                temp2.setAuthor(c.getAuthor().getUsername());
+                temp2.setPermissionCourse("AUTHOR");
+                return temp2;
+
+            }).collect(Collectors.toList());
+            courses.addAll(courses2);
+        }
+
         return courses;
+
     }
 
     @Override
-    public EditCourseResponse findEditCourseById(Long courseId) {
+    public EditCourseResponse findEditCourseById(Long courseId, String username) {
         Course courseDb = courseRepository.findCourseById(courseId);
-        log.info("end get edit: {}", courseDb.toString());
+//        log.info("end get edit: {}", courseDb.toString());
 
         List<WeekDto> weeks = courseDb.getWeeks().stream().map(week -> {
             WeekDto weekDto = new WeekDto();
@@ -127,6 +151,7 @@ public class CourseServiceImpl implements CourseService{
             weekDto.setLectures(lectures);
             return weekDto;
         }).collect(Collectors.toList());
+        String authorName = courseDb.getAuthor().getUsername();
 
         EditCourseResponse response = new EditCourseResponse();
         response.setID(courseDb.getID());
@@ -134,6 +159,8 @@ public class CourseServiceImpl implements CourseService{
         response.setDescription(courseDb.getDescription());
         response.setCategory(courseDb.getCategory().getName());
         response.setWeeks(weeks);
+        if (authorName.equals(username)) response.setPermissionCourse("AUTHOR");
+        else response.setPermissionCourse("STUDENT");
         return response;
     }
 
@@ -159,5 +186,94 @@ public class CourseServiceImpl implements CourseService{
         }
 
         courseRepository.deleteById(courseId);
+    }
+
+    @Override
+    public OverviewCourse findOverviewCourse(Long courseId, String username) {
+        log.info("username input: {}", username);
+        String[][] courseDb = courseRepository.customFindCourseById(courseId);
+
+        //SELECT ID, description, learn_info, name, release_date, skill_info, author_id
+        log.info("length row: {}", courseDb.length);
+        log.info("length col: {}", courseDb[0].length);
+
+        Long authorId = Long.parseLong(courseDb[0][6]);
+        String author = userRepository.findUsernameById(authorId);
+        log.info("author {}", author);
+        String description = courseDb[0][1];
+        log.info("description {}", description);
+        List<String> learns = Arrays.asList(courseDb[0][2].split(" \\| ").clone());
+        log.info("learns {}", learns);
+        String name = courseDb[0][3];
+        log.info("name {}", name);
+        List<String> skills = Arrays.asList(courseDb[0][5].split(" \\| ").clone());
+        log.info("skills {}", skills);
+
+        OverviewCourse response = new OverviewCourse();
+        response.setAuthor(author);
+        response.setCourseId(courseId);
+        response.setDescription(description);
+        response.setName(name);
+        response.setLearnInfo(learns);
+        response.setSkillInfo(skills);
+
+        if (username != null) {
+            if(author.equals(username)) {
+                response.setEnroll(true);
+            } else {
+                Long userId = userRepository.findUserIdByUsername(username);
+                log.info("userId: {}", userId);
+
+                Integer isEnroll = courseStudentRepository.checkEnrolledStudent(userId, courseId);
+                if (isEnroll == 1) response.setEnroll(true);
+                else response.setEnroll(false);
+
+                log.info("userid {} - isEnrolled {}", userId, isEnroll);
+            }
+
+        } else {
+            response.setEnroll(false);
+            log.info("username match null");
+        }
+
+        return response;
+    }
+
+    @Override
+    public OverviewCourse enrollCourse(String username, Long courseId) {
+        User userDb = userRepository.findUserByUsername(username);
+        Course courseDb = courseRepository.findCourseById(courseId);
+        log.info("userId: {}", userDb.getID());
+        log.info("course name: {}", courseDb.getName());
+
+        CourseStudent cs = new CourseStudent();
+        cs.setStudent(userDb);
+        cs.setCourse(courseDb);
+        cs.setEnrolledAt(new Date());
+        courseStudentRepository.save(cs);
+
+        return this.findOverviewCourse(courseId, username);
+    }
+
+    @Override
+    public List<SearchCourseResponse> searchCourse(String query) {
+        String[][] result = courseRepository.searchCourseByQueryName("web");
+        log.info("length row: {}", result.length);
+        log.info("length col: {}", result[0].length);
+
+        //ID, name, author_id
+        List<SearchCourseResponse> response = new ArrayList<>();
+        for (String[] row : result) {
+            SearchCourseResponse temp = new SearchCourseResponse();
+            String author = userRepository.findUsernameById(Long.parseLong(row[2]));
+
+            temp.setCourseId(Long.parseLong(row[0]));
+            temp.setName(row[1]);
+            temp.setAuthor(author);
+
+            log.info("ID: {} - name: {} - author: {}", Long.parseLong(row[0]), row[1], author);
+            response.add(temp);
+        }
+        return response;
     }
 }

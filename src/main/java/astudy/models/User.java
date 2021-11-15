@@ -43,7 +43,7 @@ public class User {
     private UserProfile userProfile;
 
     @OneToMany(mappedBy = "student")
-    Set<courseStudent> courseStudents;
+    List<CourseStudent> courseStudents;
 
 //    @OneToMany(mappedBy = "student")
 //    List<Submit> submits;

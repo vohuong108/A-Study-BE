@@ -23,5 +23,8 @@ public class EditCourseResponse {
     private String category;
 
     @JsonProperty("weeks")
-    List<WeekDto> weeks;
+    private List<WeekDto> weeks;
+
+    @JsonProperty("permissionCourse")
+    private String permissionCourse;
 }

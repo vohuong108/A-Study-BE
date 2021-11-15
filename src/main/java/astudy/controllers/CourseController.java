@@ -21,9 +21,38 @@ import java.io.*;
 public class CourseController {
     private CourseService courseService;
 
+    @GetMapping("/course/search")
+    public ResponseEntity<?> searchCourse(
+            @RequestParam("q") String query) {
+        return ResponseEntity.ok().body(courseService.searchCourse(query));
+    }
+
+    @GetMapping("/course/enroll/{courseId}")
+    public ResponseEntity<?> enrollCourse(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("courseId") Long courseId) {
+        String username = HandleToken.getUsernameFromToken(token);
+        return ResponseEntity.ok().body( courseService.enrollCourse(username, courseId));
+    }
+
+    @GetMapping("/course/overview/{id}")
+    public ResponseEntity<?> getOverviewCourse(
+            @PathVariable("id") Long id,
+            @RequestHeader("Authorization") String token) {
+        if(token.equals("")) {
+            return ResponseEntity.ok().body( courseService.findOverviewCourse(id, null));
+        } else {
+            String username = HandleToken.getUsernameFromToken(token);
+            return ResponseEntity.ok().body( courseService.findOverviewCourse(id, username));
+        }
+    }
+
     @GetMapping("/course/{id}")
-    public ResponseEntity<?> getEditCourseById(@PathVariable("id") Long id) throws IOException {
-        return ResponseEntity.ok().body( courseService.findEditCourseById(id));
+    public ResponseEntity<?> getEditCourseById(
+            @PathVariable("id") Long id,
+            @RequestHeader("Authorization") String token) throws IOException {
+        String username = HandleToken.getUsernameFromToken(token);
+        return ResponseEntity.ok().body( courseService.findEditCourseById(id, username));
     }
 
     @GetMapping("/courses")
@@ -40,11 +69,6 @@ public class CourseController {
         String username = HandleToken.getUsernameFromToken(token);
 
         return ResponseEntity.ok().body(courseService.createCourse(body, username));
-    }
-
-    @DeleteMapping("/course/{id}")
-    public CourseDto deleteCourseById() {
-        return null;
     }
 
     @PostMapping("/course/createweek")

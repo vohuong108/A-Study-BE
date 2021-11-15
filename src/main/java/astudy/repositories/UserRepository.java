@@ -4,7 +4,9 @@ import astudy.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     @Query(
             value = "SELECT * FROM user u WHERE u.username = :username",
@@ -12,7 +14,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findUserByUsername(@Param("username") String username);
 
     @Query(
-            value = "SELECT * FROM user u WHERE u.ID = :userId",
+            value = "SELECT username FROM user u WHERE u.ID = :userId",
             nativeQuery = true)
-    User findUserById(@Param("userId") String userId);
+    String findUsernameById(@Param("userId") Long userId);
+
+    @Query(
+            value = "SELECT ID FROM user u WHERE u.username = :username",
+            nativeQuery = true)
+    Long findUserIdByUsername(@Param("username") String username);
 }

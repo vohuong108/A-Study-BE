@@ -5,7 +5,6 @@ import lombok.Data;
 import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "course")
@@ -37,7 +36,7 @@ public class Course {
     private User author;
 
     @OneToMany(mappedBy = "course")
-    Set<courseStudent> courseStudents;
+    List<CourseStudent> courseStudents;
 
     @OneToMany(mappedBy = "course")
     List<Week> weeks;
