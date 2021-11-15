@@ -14,7 +14,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 
@@ -25,6 +24,7 @@ import java.io.IOException;
 @RequestMapping("/api")
 public class WeekController {
     private final WeekService weekService;
+
     @GetMapping("/week/lecture/{type}/{id}")
     public ResponseEntity<?> getLecture(
             @PathVariable("id") Long lecId,
