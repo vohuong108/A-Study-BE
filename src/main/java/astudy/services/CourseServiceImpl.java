@@ -280,7 +280,9 @@ public class CourseServiceImpl implements CourseService{
                 log.info("userId: {}", userId);
 
                 Integer isEnroll = courseStudentRepository.checkEnrolledStudent(userId, courseId);
-                if (isEnroll == 1) response.setEnroll(true);
+                log.info("isEnroll {}", isEnroll);
+                if(isEnroll == null) response.setEnroll(false);
+                else if (isEnroll == 1) response.setEnroll(true);
                 else response.setEnroll(false);
 
                 log.info("userid {} - isEnrolled {}", userId, isEnroll);
