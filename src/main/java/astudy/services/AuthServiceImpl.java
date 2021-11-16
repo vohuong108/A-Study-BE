@@ -26,7 +26,8 @@ public class AuthServiceImpl implements AuthService{
 
         User userDb = userRepository.findUserByUsername(username);
 
-        if (userDb == null) throw new AuthException("username or password is invalid");
+        if (userDb == null ||
+        userDb.getStatus().equals("INACTIVE")) throw new AuthException("username or password is invalid");
         else {
             String passDb = userDb.getPassword();
 
@@ -47,9 +48,9 @@ public class AuthServiceImpl implements AuthService{
     public UserDto signup(String username, String email, String password) {
         PasswordEncoder encoder = new BCryptPasswordEncoder();
 
-        Role userRole = roleRepository.findRoleByName("AUTHOR");
+        Role userRole = roleRepository.findRoleByName("STUDENT");
         if(userRole == null){
-            userRole = roleRepository.save(new Role(Permission.AUTHOR));
+            userRole = roleRepository.save(new Role(Permission.STUDENT));
         }
 
         User regUser = new User();
@@ -57,6 +58,7 @@ public class AuthServiceImpl implements AuthService{
         regUser.setPassword(encoder.encode(password));
         regUser.setEmail(email);
         regUser.setRole(userRole);
+        regUser.setStatus("ACTIVE");
 
         User result = userRepository.save(regUser);
 

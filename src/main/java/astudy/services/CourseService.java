@@ -2,6 +2,7 @@ package astudy.services;
 
 import astudy.dtos.CourseDto;
 import astudy.dtos.WeekDto;
+import astudy.response.AllCourseAdmin;
 import astudy.response.EditCourseResponse;
 import astudy.response.OverviewCourse;
 import astudy.response.SearchCourseResponse;
@@ -17,6 +18,8 @@ public interface CourseService {
     OverviewCourse findOverviewCourse(Long courseId, String username);
 
     List<CourseDto> findAllCourse(String username);
+
+    List<AllCourseAdmin> findAllCourseAdmin(String username);
 
     EditCourseResponse findEditCourseById(Long courseId, String username);
 

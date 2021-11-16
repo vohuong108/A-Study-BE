@@ -55,6 +55,12 @@ public class CourseController {
         return ResponseEntity.ok().body( courseService.findEditCourseById(id, username));
     }
 
+    @GetMapping("/courses/admin")
+    public ResponseEntity<?> getAllCourseAdmin(@RequestHeader("Authorization") String token) {
+        String username = HandleToken.getUsernameFromToken(token);
+        return ResponseEntity.ok().body(courseService.findAllCourseAdmin(username));
+    }
+
     @GetMapping("/courses")
     public ResponseEntity<?> getCourses(@RequestHeader("Authorization") String token) throws IOException {
         String username = HandleToken.getUsernameFromToken(token);

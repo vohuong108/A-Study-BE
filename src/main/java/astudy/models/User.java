@@ -31,6 +31,9 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(name = "status")
+    private String status;
+
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "user_role")
     private Role role;

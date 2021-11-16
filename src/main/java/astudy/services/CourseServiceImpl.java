@@ -6,6 +6,7 @@ import astudy.dtos.WeekDto;
 import astudy.enums.Permission;
 import astudy.models.*;
 import astudy.repositories.*;
+import astudy.response.AllCourseAdmin;
 import astudy.response.EditCourseResponse;
 import astudy.response.OverviewCourse;
 import astudy.response.SearchCourseResponse;
@@ -26,6 +27,7 @@ public class CourseServiceImpl implements CourseService{
     private final WeekRepository weekRepository;
     private final WeekService weekService;
     private final CourseStudentRepository courseStudentRepository;
+    private final RoleRepository roleRepository;
 
     @Override
     public CourseDto createCourse(CourseDto courseDto, String username) {
@@ -72,37 +74,90 @@ public class CourseServiceImpl implements CourseService{
 
     @Override
     public List<CourseDto> findAllCourse(String username) {
-        User userDb = userRepository.findUserByUsername(username);
-        Permission role = userDb.getRole().getName();
+        Long roleId = userRepository.findRoleIdByUsername(username);
+        String roleName = roleRepository.findRoleByID(roleId);
 
-        List<CourseDto> courses = userDb.getCourseStudents().stream().map(sc -> {
-            Course course = sc.getCourse();
+        if (roleName.equals("ADMIN")) {
+            log.info("match ADMIN role");
+            //SELECT c.ID, c.name, u.username, ct.name, c.release_date
+            String[][] allCourse = courseRepository.getAllCourseByAdmin();
+            log.info("row length: {}", allCourse.length);
 
-            CourseDto temp = new CourseDto();
-            temp.setCourseId(course.getID());
-            temp.setName(course.getName());
-            temp.setAuthor(course.getAuthor().getUsername());
-            temp.setPermissionCourse("STUDENT");
-            return temp;
+            List<CourseDto> courses = new ArrayList<>();
 
-        }).collect(Collectors.toList());
+            for (String[] row : allCourse) {
+                CourseDto ACA = new CourseDto();
+                ACA.setCourseId(Long.parseLong(row[0]));
+                ACA.setName(row[1]);
+                ACA.setAuthor(row[2]);
+                ACA.setPermissionCourse("ADMIN");
+                courses.add(ACA);
+            }
+            return courses;
 
-        if (role != Permission.STUDENT) {
-            //TODO: current user is author
-            List<CourseDto> courses2 = userDb.getCourses().stream().map(c -> {
-                CourseDto temp2 = new CourseDto();
-                temp2.setCourseId(c.getID());
-                temp2.setName(c.getName());
-                temp2.setAuthor(c.getAuthor().getUsername());
-                temp2.setPermissionCourse("AUTHOR");
-                return temp2;
+        } else {
+            log.info("match student or author");
+            User userDb = userRepository.findUserByUsername(username);
+            Permission role = userDb.getRole().getName();
+
+            List<CourseDto> courses = userDb.getCourseStudents().stream().map(sc -> {
+                Course course = sc.getCourse();
+
+                CourseDto temp = new CourseDto();
+                temp.setCourseId(course.getID());
+                temp.setName(course.getName());
+                temp.setAuthor(course.getAuthor().getUsername());
+                temp.setPermissionCourse("STUDENT");
+                return temp;
 
             }).collect(Collectors.toList());
-            courses.addAll(courses2);
+
+            if (role == Permission.AUTHOR) {
+                //TODO: current user is author
+                log.info("match author");
+                List<CourseDto> courses2 = userDb.getCourses().stream().map(c -> {
+                    CourseDto temp2 = new CourseDto();
+                    temp2.setCourseId(c.getID());
+                    temp2.setName(c.getName());
+                    temp2.setAuthor(c.getAuthor().getUsername());
+                    temp2.setPermissionCourse("AUTHOR");
+                    return temp2;
+
+                }).collect(Collectors.toList());
+                courses.addAll(courses2);
+            }
+
+            return courses;
         }
+    }
 
-        return courses;
+    @Override
+    public List<AllCourseAdmin> findAllCourseAdmin(String username) {
+        Long roleId = userRepository.findRoleIdByUsername(username);
+        String role = roleRepository.findRoleByID(roleId);
+        log.info("role name: {}", role);
 
+        if (role.equals("ADMIN")) {
+            log.info("match ADMIN role");
+            //SELECT c.ID, c.name, u.username, ct.name, c.release_date
+            String[][] allCourse = courseRepository.getAllCourseByAdmin();
+            log.info("row length: {}", allCourse.length);
+            List<AllCourseAdmin> courses = new ArrayList<>();
+
+            for (String[] row : allCourse) {
+                AllCourseAdmin ACA = new AllCourseAdmin();
+                ACA.setCourseId(Long.parseLong(row[0]));
+                ACA.setName(row[1]);
+                ACA.setAuthor(row[2]);
+                ACA.setCategory(row[3]);
+                ACA.setReleaseDate(row[4]);
+                courses.add(ACA);
+            }
+
+            return courses;
+
+        }
+        else return null;
     }
 
     @Override

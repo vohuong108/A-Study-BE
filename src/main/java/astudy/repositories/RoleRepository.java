@@ -12,4 +12,9 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
             value = "SELECT * FROM role WHERE role.name = :roleName",
             nativeQuery = true)
     Role findRoleByName(@Param("roleName") String roleName);
+
+    @Query(
+            value = "SELECT name FROM role WHERE role.ID = :roleId",
+            nativeQuery = true)
+    String findRoleByID(@Param("roleId") Long roleId);
 }
