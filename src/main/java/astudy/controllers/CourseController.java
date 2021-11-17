@@ -39,9 +39,12 @@ public class CourseController {
     public ResponseEntity<?> getOverviewCourse(
             @PathVariable("id") Long id,
             @RequestHeader("Authorization") String token) {
-        if(token.equals("")) {
+        log.info("token in overview {}", token);
+        if(token.isEmpty() || token.equals("")) {
+            log.info("match in overview with null");
             return ResponseEntity.ok().body( courseService.findOverviewCourse(id, null));
         } else {
+            log.info("match in overview not null");
             String username = HandleToken.getUsernameFromToken(token);
             return ResponseEntity.ok().body( courseService.findOverviewCourse(id, username));
         }

@@ -314,7 +314,7 @@ public class CourseServiceImpl implements CourseService{
 
     @Override
     public List<SearchCourseResponse> searchCourse(String query) {
-        String[][] result = courseRepository.searchCourseByQueryName("web");
+        String[][] result = courseRepository.searchCourseByQueryName(query);
         log.info("length row: {}", result.length);
         log.info("length col: {}", result[0].length);
 
