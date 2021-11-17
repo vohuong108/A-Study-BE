@@ -39,8 +39,8 @@ public class WeekController {
                     .header("Content-Type", "video/mp4")
                     .header("Accept-Ranges", "bytes")
                     .header("Content-Length", String.valueOf(result.length))
-//                    .header("Content-Range", "bytes" + " " + 0 + "-" + 2000 + "/" + result.length)
-                    .header("Content-Range", "bytes 50-102517839845")
+                    .header("Content-Range", "bytes" + " " + 0 + "-" + 2000 + "/" + result.length)
+//                    .header("Content-Range", "bytes 50-102517839845")
                     .body(resource);
 
         } else if (type.equals("text")) {
