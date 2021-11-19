@@ -235,7 +235,11 @@ public class CourseServiceImpl implements CourseService{
     @Override
     public void deleteCourseById(Long courseId) {
         List<Long> listWeekId = weekRepository.getListIdByCourseId(courseId);
+        List<Long> listCSId = courseStudentRepository.findListIdByCourseId(courseId);
 
+        for (Long csId : listCSId) {
+            courseStudentRepository.deleteById(csId);
+        }
         for (Long weekId : listWeekId) {
             weekService.deleteWeekById(weekId);
         }
