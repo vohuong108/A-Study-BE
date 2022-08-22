@@ -61,7 +61,8 @@ public class SecurityConfiguration {
 
         http.authorizeRequests().antMatchers(
                 API_V1_AUTH_ROOT_URL + "/**",
-                API_V1_COMMON_ROOT_URL + "/**"
+                API_V1_COMMON_ROOT_URL + "/**",
+                API_V1_SEARCH_ROOT_URL + "/**"
 
         ).permitAll();
         http.authorizeRequests().antMatchers(

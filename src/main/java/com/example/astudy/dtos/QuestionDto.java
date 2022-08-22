@@ -12,5 +12,6 @@ public class QuestionDto {
     private QuestionType questionType;
     private Integer score;
     private Integer questionOrder;
+    private Boolean isCorrect;
     private List<OptionDto> options;
 }

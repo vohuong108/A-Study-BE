@@ -44,7 +44,15 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException
     {
-        String uri = request.getServletPath();
+        String uri = request.getRequestURI();
+        String authorizationHeader = request.getHeader(AUTHORIZATION);
+
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            log.info("[{}] Match in have token", uri);
+            return false;
+        }
+
+
         AntPathMatcher pathMatcher = new AntPathMatcher();
 
         boolean matchIgnoreUrl = EXCLUDE_URL_PATTERNS.stream()

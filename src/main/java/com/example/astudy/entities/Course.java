@@ -17,7 +17,7 @@ public class Course implements Serializable {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long ID;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name ="name", nullable = false, columnDefinition = "TEXT")
     private String name;
 
     @Column(columnDefinition = "TEXT", nullable = false)

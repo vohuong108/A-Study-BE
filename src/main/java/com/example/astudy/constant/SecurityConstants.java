@@ -8,6 +8,7 @@ import java.util.List;
 public final class SecurityConstants {
     public static final String API_V1_AUTH_ROOT_URL = "/api/v1/auth";
     public static final String API_V1_COMMON_ROOT_URL = "/api/v1/common";
+    public static final String API_V1_SEARCH_ROOT_URL = "/api/v1/search";
     public static final String API_V1_USER_ROOT_URL = "/api/v1/user";
     public static final String API_V1_COURSE_ROOT_URL = "/api/v1/course";
     public static final String API_V1_QUIZ_ROOT_URL = "/api/v1/quiz";
@@ -17,7 +18,9 @@ public final class SecurityConstants {
     public static final List<String> EXCLUDE_URL_PATTERNS =
             List.of(
                     API_V1_AUTH_ROOT_URL + "/**",
-                    API_V1_COMMON_ROOT_URL + "/**"
+                    API_V1_COMMON_ROOT_URL + "/**",
+                    API_V1_SEARCH_ROOT_URL + "/**"
+
             );
 
     public static final List<String> AUTHENTICATE_URL_PATTERNS =

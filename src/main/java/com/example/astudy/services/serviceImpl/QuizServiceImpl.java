@@ -2,15 +2,15 @@ package com.example.astudy.services.serviceImpl;
 
 import com.example.astudy.config.security.share.ValidateCourseResource;
 import com.example.astudy.config.security.utils.SecurityUtils;
-import com.example.astudy.dtos.QuestionSelectDto;
-import com.example.astudy.dtos.QuizDto;
-import com.example.astudy.dtos.ScoringQuizDto;
-import com.example.astudy.dtos.WeekContentDto;
+import com.example.astudy.dtos.*;
 import com.example.astudy.dtos.mapper.QuizMapper;
+import com.example.astudy.dtos.mapper.SubmitMapper;
 import com.example.astudy.dtos.mapper.WeekContentMapper;
 import com.example.astudy.entities.*;
+import com.example.astudy.enums.Degree;
 import com.example.astudy.enums.SubmitState;
 import com.example.astudy.exceptions.QuizSessionException;
+import com.example.astudy.exceptions.RequestFieldNotFoundException;
 import com.example.astudy.repositories.*;
 import com.example.astudy.services.QuizService;
 import com.example.astudy.task.CheckSubmitRequest;
@@ -40,6 +40,7 @@ public class QuizServiceImpl implements QuizService {
     private final OptionRepo optionRepo;
     private final QuizMapper quizMapper;
     private final WeekContentMapper weekContentMapper;
+    private final SubmitMapper submitMapper;
     private final ValidateCourseResource validateCourseResource;
     private final ThreadPoolTaskScheduler taskScheduler;
 
@@ -53,9 +54,9 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public QuizDto getQuizContent(@NonNull Long courseId, @NonNull Long weekId, @NonNull Long quizId) {
+    public QuizDto getQuizContentToEdit(@NonNull Long courseId, @NonNull Long weekId, @NonNull Long quizId) {
         Quiz quiz = (Quiz) validateCourseResource.checkWeekContentExists(courseId, weekId, quizId);
-        return quizMapper.quizToQuizDto(quiz, weekId);
+        return quizMapper.quizToQuizDtoForEdit(quiz, weekId);
     }
 
     @Override
@@ -176,10 +177,6 @@ public class QuizServiceImpl implements QuizService {
                 log.error("SESSION ID {} - SCHEDULED_TASK_SIZE {}", session.getSessionId(), SCHEDULED_TASKS.size());
 
                 var scheduledTaskOfSession = SCHEDULED_TASKS.get(session.getSessionId());
-                System.out.println(SCHEDULED_TASKS.keySet().iterator().next());
-                System.out.println(scheduledTaskOfSession);
-                System.out.println(SCHEDULED_TASKS.get(SCHEDULED_TASKS.keySet().iterator().next()));
-
 
                 if(scheduledTaskOfSession != null) {
                     log.error("NON NULL SCHEDULED TASK");
@@ -272,6 +269,7 @@ public class QuizServiceImpl implements QuizService {
 
                                 if (!option.getIsCorrect()) {
                                     score = 0;
+
                                 }
                             }
                         }
@@ -301,5 +299,81 @@ public class QuizServiceImpl implements QuizService {
         } else {
             throw new QuizSessionException("The session of submission has expired or submitted", HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    @Override
+    public OverviewSubmitQuizDto getAllSubmitOfQuiz(@NonNull Long quizId) {
+        String username = SecurityUtils.getAuthenticatedUsername();
+        Long userId = userRepo.findUserIdByUsername(username);
+
+        List<Submit> submits = submitRepo.findSubmitsByQuizIDAndStudentID(quizId, userId);
+        String[][] result = quizRepo.findDegreeAndMaxScoreByQuizId(quizId);
+        String quizName = weekContentRepo.findContentNameByContentId(quizId);
+
+        OverviewSubmitQuizDto review = new OverviewSubmitQuizDto();
+        review.setQuizId(quizId);
+        review.setQuizName(quizName);
+        review.setDegree(Degree.valueOf(result[0][0]));
+        review.setMaxScore(Integer.parseInt(result[0][1]));
+        review.setNumOfSub(submits.size());
+        review.setSubmits(submitMapper.listSubmitToListSubmitDto(submits));
+
+        return review;
+
+    }
+
+    @Override
+    public SubmitDto getQuizReview(@NonNull Long quizId, @NonNull Long submitId) throws RequestFieldNotFoundException {
+        Submit submit = submitRepo.findSubmitsByQuizIDAndID(quizId, submitId);
+
+        if (submit == null) {
+            throw new RequestFieldNotFoundException(
+                    String.format("Resource with Quiz's id {%s} and Submits id {%s} not found.", quizId, submitId)
+            );
+        }
+
+        Set<Question> questionSet = new HashSet<>();
+        Map<Long, Option> optionMap = new HashMap<>();
+
+        for (Selected selected : submit.getSelected()) {
+            questionSet.add(selected.getQuestion());
+
+            if (selected.getOption() != null) {
+                optionMap.put(selected.getOption().getID(), selected.getOption());
+            }
+        }
+
+
+        List<QuestionDto> questionDtoList = new ArrayList<>();
+
+        for (Question question : questionSet) {
+            QuestionDto questionDto = submitMapper.questionToQuestionDto(question);
+            List<OptionDto> optionDtoList = new ArrayList<>();
+
+            int count_incorrect = 0;
+            for (Option option : question.getOptions()) {
+                OptionDto optionDto = submitMapper.optionToOptionDto(option);
+
+                if (optionMap.get(option.getID()) != null) {
+                    optionDto.setIsSelect(true);
+
+                } else if(option.getIsCorrect()) {
+                    count_incorrect += 1;
+                }
+
+                optionDtoList.add(optionDto);
+            }
+
+            questionDto.setIsCorrect(count_incorrect == 0);
+            questionDto.setOptions(optionDtoList);
+            questionDtoList.add(questionDto);
+        }
+
+        questionDtoList.sort((a, b) -> (int) (a.getID() - b.getID()));
+
+        SubmitDto response = submitMapper.submitToSubmitDto(submit);
+        response.setQuestions(questionDtoList);
+
+        return response;
     }
 }

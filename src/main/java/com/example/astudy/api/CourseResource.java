@@ -37,6 +37,14 @@ public class CourseResource {
      * */
 
     @PreAuthorize("hasAuthority('course:read')")
+    @PostMapping("/{id}/enroll")
+    public ResponseEntity<?> enrollCourse(@PathVariable Long id) {
+        return ResponseEntity
+                .ok()
+                .body(courseService.enrollCourse(id));
+    }
+
+    @PreAuthorize("hasAuthority('course:read')")
     @GetMapping("/user/courses")
     public ResponseEntity<List<CourseDto>> getAllCourseOfUser() {
         String username = SecurityUtils.getAuthenticatedUsername();
@@ -75,19 +83,17 @@ public class CourseResource {
 
 
     @PreAuthorize(
-            "hasAnyRole('ADMIN_TRAINEE', 'SUPER_ADMIN') || " +
-            "@securityService.isAuthorOfCourse(#id) || " +
-            "@securityService.isEnrolledAndPublicContent(#id, #quizId)"
+            "hasAnyRole('ADMIN_TRAINEE', 'SUPER_ADMIN') || @securityService.isAuthorOfCourse(#id)"
     )
     @GetMapping(
             path = "/{id}/week/{weekId}/quiz/{quizId}"
     )
-    public ResponseEntity<?> getQuizContent(
+    public ResponseEntity<?> getQuizContentToEdit(
             @NonNull @PathVariable Long id,
             @NonNull @PathVariable Long weekId,
             @NonNull @PathVariable Long quizId
     ) {
-        return ResponseEntity.ok().body(quizService.getQuizContent(id, weekId, quizId));
+        return ResponseEntity.ok().body(quizService.getQuizContentToEdit(id, weekId, quizId));
     }
 
     @PreAuthorize(

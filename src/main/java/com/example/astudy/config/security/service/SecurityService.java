@@ -48,7 +48,7 @@ public class SecurityService {
         return isEnrolled(courseId);
     }
 
-    public boolean isAccessQuiz(@NonNull Long quizId) {
+    public boolean isAccessQuiz(@NonNull Long quizId) throws RequestFieldNotFoundException {
         Long courseId = weekContentRepo.findCourseIdByQuizId(quizId);
         if (courseId == null) throw new RequestFieldNotFoundException(
                 String.format("Resource Quiz's id {%s} not found.", quizId)

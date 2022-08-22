@@ -7,8 +7,10 @@ import com.example.astudy.dtos.mapper.CourseMapper;
 import com.example.astudy.dtos.mapper.WeekContentMapper;
 import com.example.astudy.dtos.mapper.WeekMapper;
 import com.example.astudy.entities.*;
+import com.example.astudy.entities.key.StudentCourseKey;
 import com.example.astudy.enums.AccountStatus;
 import com.example.astudy.enums.CourseContentType;
+import com.example.astudy.enums.CourseInfoType;
 import com.example.astudy.exceptions.RequestFieldNotFoundException;
 import com.example.astudy.repositories.*;
 import com.example.astudy.services.CourseService;
@@ -20,8 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,6 +43,94 @@ public class CourseServiceImpl implements CourseService {
     private final WeekMapper weekMapper;
     private final WeekContentMapper weekContentMapper;
     private final ValidateCourseResource validateCourseResource;
+
+    @Override
+    public EnrollCourseResponse enrollCourse(Long courseId) {
+        String username = SecurityUtils.getAuthenticatedUsername();
+        Set<String> roles = SecurityUtils.getAuthenticatedRole();
+
+        Course course = courseRepo.findCourseByID(courseId);
+
+        if (course == null) {
+            throw new RequestFieldNotFoundException(
+                    String.format("Resource Course's id {%s} not found", courseId)
+            );
+        }
+
+        if (roles.contains("ROLE_ADMIN_TRAINEE") ||
+                roles.contains("ROLE_SUPER_ADMIN") ||
+                (roles.contains("ROLE_AUTHOR") && Objects.equals(username, course.getAuthor().getUsername())) ||
+                studentCourseRepo.checkEnrolledByCourseIdAndStudentName(courseId, username)
+        ) {
+            EnrollCourseResponse response = new EnrollCourseResponse();
+            response.setCourseId(courseId);
+            response.setMessage("You already have access to this course.");
+            return response;
+
+        } else {
+            AppUser user = userRepo.findByUsername(username);
+            StudentCourseKey key = new StudentCourseKey();
+            key.setCourseId(courseId);
+            key.setStudentId(user.getID());
+
+            StudentCourse studentCourse = new StudentCourse();
+
+            studentCourse.setID(key);
+            studentCourse.setCourse(course);
+            studentCourse.setStudent(user);
+            studentCourse.setEnrolledAt(new Date());
+            studentCourse.setProgress(0);
+
+            studentCourseRepo.save(studentCourse);
+
+            EnrollCourseResponse response = new EnrollCourseResponse();
+            response.setCourseId(courseId);
+            response.setMessage("Enroll course successfully!!!");
+            return response;
+        }
+    }
+
+    @Override
+    public CourseDto getCourseInfoById(Long courseId) {
+        String username = SecurityUtils.getAuthenticatedUsername();
+        Set<String> roles = SecurityUtils.getAuthenticatedRole();
+
+        Course course = courseRepo.findCourseByID(courseId);
+
+        if (course == null) {
+            throw new RequestFieldNotFoundException(
+                    String.format("Resource Course's id {%s} not found", courseId)
+            );
+        }
+        CourseDto response = new CourseDto();
+        response.setID(course.getID());
+        response.setName(course.getName());
+        response.setAuthor(course.getAuthor().getUsername());
+        response.setReleaseDate(course.getReleaseDate());
+        response.setDescription(course.getDescription());
+
+        Map<CourseInfoType, List<String>> infos = course.getCourseInfos()
+                .stream()
+                .collect(Collectors.groupingBy(CourseInfo::getInfoType,
+                        Collectors.mapping(CourseInfo::getContent, Collectors.toList())));
+
+        response.setSkills(infos.get(CourseInfoType.SKILL));
+        response.setLearns(infos.get(CourseInfoType.LEARN));
+
+        if (username == null) {
+            response.setIsAccess(false);
+
+        } else if (roles.contains("ROLE_SUPER_ADMIN") || roles.contains("ADMIN_TRAINEE")) {
+            response.setIsAccess(true);
+        } else if (roles.contains("ROLE_AUTHOR") && username.equals(course.getAuthor().getUsername())) {
+            response.setIsAccess(true);
+        } else {
+            boolean isEnrolled = studentCourseRepo.checkEnrolledByCourseIdAndStudentName(courseId, username);
+            response.setIsAccess(isEnrolled);
+        }
+
+        return response;
+    }
 
     @Override
     public List<CourseDto> getAllCourseOfUser(String username) {
@@ -120,6 +209,7 @@ public class CourseServiceImpl implements CourseService {
                             weekContentDto.setID(weekContent.getID());
                             weekContentDto.setName(weekContent.getName());
                             weekContentDto.setContentOrder(weekContent.getContentOrder());
+                            weekContentDto.setContentStatus(weekContent.getContentStatus());
                             weekContentDto.setContentType(weekContent.getContentType());
 
                             return weekContentDto;

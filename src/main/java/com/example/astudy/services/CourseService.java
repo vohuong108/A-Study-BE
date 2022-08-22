@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.List;
 
 public interface CourseService {
+    EnrollCourseResponse enrollCourse(Long courseId);
+    CourseDto getCourseInfoById(Long courseId);
     List<CourseDto> getAllCourseOfUser(String username);
     CourseDto save(CourseDto course);
     void deleteCourse(Long courseId);

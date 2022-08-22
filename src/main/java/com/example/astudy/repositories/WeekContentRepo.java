@@ -50,4 +50,10 @@ public interface WeekContentRepo extends JpaRepository<WeekContent, Long> {
             nativeQuery = true
     )
     String findContentStatusByContentId(@Param("id") Long id);
+
+    @Query(
+            value = "SELECT name FROM week_content wc WHERE wc.id = :id",
+            nativeQuery = true
+    )
+    String findContentNameByContentId(@Param("id") Long id);
 }

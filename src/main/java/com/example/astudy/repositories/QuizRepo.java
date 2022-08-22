@@ -12,4 +12,10 @@ public interface QuizRepo extends JpaRepository<Quiz, Long> {
             nativeQuery = true
     )
     int findAttemptAllowByQuizId(@Param("id") Long id);
+
+    @Query(
+            value = "SELECT degree, max_score FROM quiz q WHERE q.id = :id",
+            nativeQuery = true
+    )
+    String[][] findDegreeAndMaxScoreByQuizId(@Param("id") Long id);
 }

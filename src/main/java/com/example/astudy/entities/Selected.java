@@ -17,15 +17,15 @@ public class Selected {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long ID;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "submit_id", nullable = false)
     private Submit submit;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "option_id")
     private Option option;
 
