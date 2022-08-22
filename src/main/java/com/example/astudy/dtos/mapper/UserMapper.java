@@ -26,11 +26,14 @@ public interface UserMapper {
     })
     UserDto appUserToUserDto(AppUser appUser);
 
+    @Mappings({
+            @Mapping(target = "password", ignore = true),
+            @Mapping(target = "userRole", expression = "java(appUser.getRole().getName())"),
+            @Mapping(target = "profile", ignore = true)
+    })
+    UserDto appUserToUserDtoForAdmin(AppUser appUser);
+
     UserProfileDto userProfileToUserProfileDto(UserProfile userProfile);
 
     UserProfile userProfileDtoToUserProfile(UserProfileDto userProfileDto);
-
-    List<AppUser> listUserDtoToListAppUser(List<UserDto> userDtoList);
-
-    List<UserDto> listAppUserToListUserDto(List<AppUser> appUserList);
 }

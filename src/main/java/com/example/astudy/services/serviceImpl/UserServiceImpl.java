@@ -1,5 +1,6 @@
 package com.example.astudy.services.serviceImpl;
 
+import com.example.astudy.dtos.AdminActionUserDto;
 import com.example.astudy.dtos.PasswordDto;
 import com.example.astudy.dtos.UserDto;
 import com.example.astudy.dtos.mapper.UserMapper;
@@ -17,6 +18,10 @@ import com.example.astudy.repositories.UserRepo;
 import com.example.astudy.services.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,6 +40,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService, UserDetailsService {
+    private final int USER_PAGE_SIZE = 25;
     private final UserRepo userRepo;
     private final ProfileRepo profileRepo;
     private final RoleRepo roleRepo;
@@ -143,7 +149,76 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public List<UserDto> getUsers() {
-        return userRepo.findAll().stream().map(userMapper::appUserToUserDto).collect(Collectors.toList());
+    public List<UserDto> getAllUserInSystem(int pageNumber) {
+        Pageable pageable = PageRequest.of(pageNumber, USER_PAGE_SIZE, Sort.by("ID"));
+        Page<AppUser> users = userRepo.findAll(pageable);
+        return users.stream().map(userMapper::appUserToUserDtoForAdmin).collect(Collectors.toList());
+    }
+
+    @Override
+    public AdminActionUserDto changeStatusOfUser(AdminActionUserDto input) {
+        Long userId = input.getUserId();
+        if (userId == null) {
+            throw new RequestFieldNotFoundException("User id must not null");
+        }
+
+        AccountStatus status = input.getAccountStatus();
+        if (status == null) {
+            throw new RequestFieldNotFoundException("status must not null");
+        }
+
+        AppUser user = userRepo.findAppUserByID(userId);
+
+        if (user == null) {
+            throw new RequestFieldNotFoundException(
+                    String.format("User with id {%s} not found", userId)
+            );
+        }
+
+        user.setStatus(status);
+
+        AdminActionUserDto response = new AdminActionUserDto();
+        response.setUserId(userId);
+        response.setAccountStatus(status);
+
+        return response;
+    }
+
+    @Override
+    public AdminActionUserDto changeRoleOfUser(AdminActionUserDto input) {
+        Long userId = input.getUserId();
+        AppUserRole roleIn = input.getRole();
+
+        if (userId == null) {
+            throw new RequestFieldNotFoundException("User id must not null");
+        }
+
+        if (roleIn == null) {
+            throw new RequestFieldNotFoundException("Role must not null");
+        }
+
+        AppUser user = userRepo.findAppUserByID(userId);
+
+        if (user == null) {
+            throw new RequestFieldNotFoundException(
+                    String.format("User with id {%s} not found", userId)
+            );
+        }
+
+        Role role = roleRepo.findByName(roleIn);
+
+        if (role == null) {
+            throw new RequestFieldNotFoundException(
+                    String.format("Role {%s} invalid", roleIn)
+            );
+        }
+
+        user.setRole(role);
+
+        AdminActionUserDto response = new AdminActionUserDto();
+        response.setUserId(userId);
+        response.setRole(roleIn);
+
+        return response;
     }
 }

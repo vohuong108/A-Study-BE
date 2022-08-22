@@ -12,6 +12,7 @@ public final class SecurityConstants {
     public static final String API_V1_USER_ROOT_URL = "/api/v1/user";
     public static final String API_V1_COURSE_ROOT_URL = "/api/v1/course";
     public static final String API_V1_QUIZ_ROOT_URL = "/api/v1/quiz";
+    public static final String API_V1_ADMIN_ROOT_URL = "/api/v1/admin";
     public static final String API_ROOT_URL_MAPPING = "/api/**";
     public static final String X_XSRF_TOKEN = "x-xsrf-token";
 
@@ -27,7 +28,8 @@ public final class SecurityConstants {
             List.of(
                     API_V1_USER_ROOT_URL + "/**",
                     API_V1_COURSE_ROOT_URL + "/**",
-                    API_V1_QUIZ_ROOT_URL + "/**"
+                    API_V1_QUIZ_ROOT_URL + "/**",
+                    API_V1_ADMIN_ROOT_URL + "/**"
             );
 
     public static final List<String> ALLOWED_HTTP_METHODS =

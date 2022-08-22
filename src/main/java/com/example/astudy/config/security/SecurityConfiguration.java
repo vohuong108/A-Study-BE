@@ -68,7 +68,8 @@ public class SecurityConfiguration {
         http.authorizeRequests().antMatchers(
                 API_V1_USER_ROOT_URL + "/**",
                 API_V1_COURSE_ROOT_URL + "/**",
-                API_V1_QUIZ_ROOT_URL + "/**"
+                API_V1_QUIZ_ROOT_URL + "/**",
+                API_V1_ADMIN_ROOT_URL + "/**"
         ).authenticated();
         http.authorizeRequests().antMatchers("/", "/index", "/css/*", "/js/*").permitAll();
 

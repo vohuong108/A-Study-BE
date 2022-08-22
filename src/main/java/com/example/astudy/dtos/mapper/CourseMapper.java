@@ -24,6 +24,7 @@ public interface CourseMapper {
             @Mapping(target = "skills", ignore = true),
             @Mapping(target = "learns", ignore = true),
             @Mapping(target = "author", ignore = true),
+            @Mapping(target = "isAccess", ignore = true),
     })
     CourseDto studentCourseToCourseDto(StudentCourse studentCourse);
 
@@ -33,7 +34,8 @@ public interface CourseMapper {
             @Mapping(target = "category", expression = "java(course.getCategory().getName())"),
             @Mapping(target = "author", expression = "java(course.getAuthor().getUsername())"),
             @Mapping(target = "skills", ignore = true),
-            @Mapping(target = "learns", ignore = true)
+            @Mapping(target = "learns", ignore = true),
+            @Mapping(target = "isAccess", ignore = true),
     })
     CourseDto courseToCourseDto(Course course);
 
@@ -41,7 +43,9 @@ public interface CourseMapper {
             @Mapping(target = "category", ignore = true),
             @Mapping(target = "author", ignore = true),
             @Mapping(target = "courseInfos", ignore = true),
-            @Mapping(target = "releaseDate", expression = "java(new Date())")
+            @Mapping(target = "releaseDate", expression = "java(new Date())"),
+            @Mapping(target = "weeks", ignore = true),
+            @Mapping(target = "studentCourses", ignore = true),
     })
     Course courseDtoToCourse(CourseDto courseDto);
 
@@ -66,24 +70,15 @@ public interface CourseMapper {
         course.setCourseInfos(courseInfos);
     }
 
-//    @AfterMapping
-//    default void splitToSkillAndLearn(Course course, @MappingTarget CourseDto courseDto) {
-//        List<String> skills = new ArrayList<>();
-//        List<String> learns = new ArrayList<>();
-//
-//        if (course.getCourseInfos() == null) {
-//            return;
-//        }
-//        course.getCourseInfos().forEach(x -> {
-//            if (x.getInfoType().equals(CourseInfoType.SKILL)) {
-//                skills.add(x.getContent());
-//            } else {
-//                learns.add(x.getContent());
-//            }
-//        });
-//
-//        courseDto.setSkills(skills);
-//        courseDto.setLearns(learns);
-//    }
-
+    @Mappings({
+            @Mapping(target = "enrolledAt", ignore = true),
+            @Mapping(target = "progress", ignore = true),
+            @Mapping(target = "description", ignore = true),
+            @Mapping(target = "category", expression = "java(course.getCategory().getName())"),
+            @Mapping(target = "author", expression = "java(course.getAuthor().getUsername())"),
+            @Mapping(target = "skills", ignore = true),
+            @Mapping(target = "learns", ignore = true),
+            @Mapping(target = "isAccess", ignore = true),
+    })
+    CourseDto courseToCourseDtoForAdmin(Course course);
 }

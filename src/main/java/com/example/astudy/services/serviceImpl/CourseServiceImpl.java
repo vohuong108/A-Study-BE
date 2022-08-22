@@ -17,6 +17,10 @@ import com.example.astudy.services.CourseService;
 import com.example.astudy.services.storage.AmazonS3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +35,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 @Slf4j
 public class CourseServiceImpl implements CourseService {
+    private final int COURSE_PAGE_SIZE = 25;
     private final CourseRepo courseRepo;
     private final WeekRepo weekRepo;
     private final StudentCourseRepo studentCourseRepo;
@@ -331,5 +336,12 @@ public class CourseServiceImpl implements CourseService {
 
         return weekContentMapper.lectureToWeekContentDto(curLecture, weekId);
 
+    }
+
+    @Override
+    public List<CourseDto> getAllCourseInSystem(int pageNumber) {
+        Pageable pageable = PageRequest.of(pageNumber, COURSE_PAGE_SIZE, Sort.by("ID"));
+        Page<Course> users = courseRepo.findAll(pageable);
+        return users.stream().map(courseMapper::courseToCourseDtoForAdmin).collect(Collectors.toList());
     }
 }

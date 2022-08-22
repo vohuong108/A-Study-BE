@@ -19,4 +19,5 @@ public interface CourseService {
     void deleteWeekContent(Long courseId, Long weekId, Long contentId);
     WeekContentDto getLectureContentUrl(Long courseId, Long weekId, Long contentId);
     WeekContentDto updateLectureContent(Long courseId, Long weekId, Long contentId, LectureContentFormData formData) throws IOException;
+    List<CourseDto> getAllCourseInSystem(int pageNumber);
 }

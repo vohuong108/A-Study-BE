@@ -57,15 +57,6 @@ public class UserResource {
 
     }
 
-    @PreAuthorize("hasAuthority('user:read')")
-    @GetMapping("/all")
-    public ResponseEntity<ResponseBodyInfo> getUsers(HttpServletRequest request){
-        return ResponseEntity.ok().body(new ResponseBodyInfo(
-                request.getRequestURI(),
-                userService.getUsers()
-        ));
-    }
-
     @GetMapping("/username")
     public ResponseEntity<UserDto> getUserByUsername(@RequestBody UserForm userForm) {
         return ResponseEntity.ok().body(userService.getUser(userForm.getUsername()));

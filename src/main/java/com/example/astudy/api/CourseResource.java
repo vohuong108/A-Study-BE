@@ -25,8 +25,6 @@ import static com.example.astudy.constant.SecurityConstants.API_V1_COURSE_ROOT_U
 @RequiredArgsConstructor
 @RequestMapping(API_V1_COURSE_ROOT_URL)
 public class CourseResource {
-    //TODO: author is not allowed to enroll their own courses.
-    // Stream query to larger table.
     private final CourseService courseService;
     private final QuizService quizService;
 
