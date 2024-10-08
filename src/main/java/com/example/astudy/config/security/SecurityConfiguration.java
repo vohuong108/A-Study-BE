@@ -42,6 +42,7 @@ public class SecurityConfiguration {
      * CustomAuthorizationFilter with @Component annotation.
      * CustomAuthorizationFilter is added to servlet filter chain and security filter chain.
      * Hence, it is executed twice (it is also registered twice).
+     * https://docs.spring.io/spring-boot/how-to/webserver.html#howto.webserver.add-servlet-filter-listener.spring-bean.disable
      */
     @Bean
     public FilterRegistrationBean registration(CustomAuthorizationFilter filter) {
